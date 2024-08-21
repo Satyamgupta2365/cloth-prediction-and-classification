@@ -1,0 +1,87 @@
+import tensorflow as tf
+from tensorflow.keras import layers, models
+from tensorflow.keras.datasets import fashion_mnist
+from tensorflow.keras.utils import to_categorical
+import matplotlib.pyplot as plt
+from PIL import Image
+import numpy as np
+
+# Load and preprocess the Fashion MNIST dataset
+(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
+train_images = train_images.reshape((60000, 28, 28, 1)).astype('float32') / 255
+test_images = test_images.reshape((10000, 28, 28, 1)).astype('float32') / 255
+train_labels = to_categorical(train_labels)
+test_labels = to_categorical(test_labels)
+
+# Build the CNN model
+model = models.Sequential()
+model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.Flatten())
+model.add(layers.Dense(64, activation='relu'))
+model.add(layers.Dense(10, activation='softmax'))
+
+# Compile the model
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Train the model
+model.fit(train_images, train_labels, epochs=10, batch_size=64, validation_split=0.2)
+
+# Evaluate the model on the test set
+test_loss, test_acc = model.evaluate(test_images, test_labels)
+print(f'Test accuracy: {test_acc}')
+
+# Make predictions on a new image
+def load_and_preprocess_image(image_path):
+    img = Image.open(image_path).convert('L')  # Convert to grayscale
+    img = img.resize((28, 28))
+    img_array = np.array(img)
+    img_array = img_array.reshape((1, 28, 28, 1)).astype('float32') / 255
+    return img_array
+
+# Replace 'your_image_path.png' with the path to your image
+new_image = load_and_preprocess_image('/content/download.jpeg')
+prediction = model.predict(new_image)
+# Get the predicted class
+predicted_class = np.argmax(prediction)
+print(f'Predicted class: {predicted_class}')
+
+# Display the original and predicted images
+original_image = Image.open('/content/download.jpeg')
+plt.subplot(1, 2, 1)
+plt.title('Original Image')
+plt.imshow(original_image, cmap='gray')
+
+predicted_image = new_image.reshape((28, 28))
+plt.subplot(1, 2, 2)
+plt.title('Predicted Image')
+plt.imshow(predicted_image, cmap='gray')
+
+plt.show()
+
+# Define class labels based on Fashion MNIST classes
+class_labels = ["T-shirt/top", "Trouser", "Pullover", "Dress", "Coat", "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot"]
+
+# Check if predicted_class is within the valid range of class labels
+if 0 <= predicted_class < len(class_labels):
+    print(f'This is {class_labels[predicted_class]}')
+else:
+    print("Invalid prediction class index")
+  
+#This below it optional for optimeising the code
+
+import google.generativeai as genai
+import PIL.Image
+from IPython.display import Markdown
+
+genai.configure(api_key= 'AIzaSyAYnMp0T3mqOqNHVgnDgZBxx-S4DbnAXxY')
+model = genai.GenerativeModel('gemini-pro-vision')
+
+image_path = ("/content/sneksre.jpeg")
+img = PIL.Image.open(image_path)
+img
